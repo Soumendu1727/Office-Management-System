@@ -10,7 +10,7 @@
 
 <div class="discussion-wrapper">
 
-    <!-- SIDEBAR (same as Index) -->
+    <!-- SIDEBAR -->
     <div class="sidebar">
         <div class="sidebar-header">
             <h4>Client Server System</h4>
@@ -44,44 +44,151 @@
             <a asp-page="Index" class="back-btn">
                 ⬅ 
             </a>
-
         </div>
 
-        
         <!-- CHAT BODY -->
         <div class="chat-body" id="chatBody">
-            @foreach (var msg in Model.Messages)
-            {
-                var isMine = msg.SenderId == currentUserId;
 
-                <div class="chat-message @(isMine ? "sent" : "received")">
-                    <div class="bubble">
-                        <div class="sender-name">
-                            <b>@Model.UserNames[msg.SenderId] :</b>
-                            <span>@msg.Contents</span>
-                        </div>
+        @foreach (var item in Model.Timeline)
+        {
+            var isMine = item.SenderId == currentUserId;
 
-                        <span class="time">
-                            @msg.SentAt.ToString("dd/MM/yy , hh:mm tt")
-                        </span>
+            <div class="chat-message @(isMine ? "sent" : "received")">
+                <div class="bubble">
+                    <div class="sender-name">
+                        <b>@Model.UserNames[item.SenderId] :</b>
+
+                        @if (!item.IsFile)
+                        {
+                            <span>@item.MessageText</span>
+                        }
+                        else
+                        {
+                            <span>
+                                📎
+                                <a href="@Url.Page("Group", "DownloadFile", new { fileId = item.Id })">
+                                    @item.FileName
+                                </a>
+                            </span>
+                        }
                     </div>
+
+                    <span class="time">
+                        @item.SentAt.ToString("dd/MM/yy , hh:mm tt")
+                    </span>
                 </div>
-            }
+            </div>
+        }
         </div>
 
         <!-- INPUT -->
-        <form method="post" class="chat-input">
-            <textarea asp-for="Contents"
-                      placeholder="Type your message..."
-                      required></textarea>
+        <form method="post" enctype="multipart/form-data" class="chat-input">
+            <!-- File Upload Button -->
+            <input type="file"
+                   name="uploadedFile"
+                   id="uploadedFile"
+                   style="display:none;"
+                   onchange="uploadFileAuto()" />
 
-            <button type="submit">Send</button>
+            <button type="button"
+                    class="file-btn"
+                    onclick="document.getElementById('uploadedFile').click()">
+                📎
+            </button>
+
+            <!-- Chat Input -->
+            <textarea asp-for="Contents" placeholder="Type your message..." required></textarea>
+
+            <!-- Send Button -->
+            <button type="submit" class="send-btn">Send</button>
         </form>
     </div>
 
 </div>
 
 <script>
+    // ================================
+    // SCROLL CHAT TO BOTTOM
+    // ================================
     const chatBody = document.getElementById("chatBody");
     chatBody.scrollTop = chatBody.scrollHeight;
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+<script>
+    const groupId = "@Model.Group.Id";
+    const currentUserId = "@currentUserId";
+
+    // ================================
+    // SIGNALR CONNECTION
+    // ================================
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chatHub")
+        .withAutomaticReconnect()
+        .build();
+
+    // -------- RECEIVE TEXT MESSAGE --------
+    connection.on("ReceiveMessage", function (user, message, senderId) {
+        const isMine = senderId == currentUserId;
+        const msgHtml = `
+            <div class="chat-message ${isMine ? "sent" : "received"}">
+                <div class="bubble">
+                    <div class="sender-name">
+                        <b>${user} :</b>
+                        <span>${message}</span>
+                    </div>
+                    <span class="time">Just now</span>
+                </div>
+            </div>
+        `;
+        chatBody.innerHTML += msgHtml;
+        chatBody.scrollTop = chatBody.scrollHeight;
+    });
+
+    // -------- RECEIVE FILE MESSAGE --------
+    connection.on("ReceiveFile", function (user, fileName, filePath, senderId) {
+        const isMine = senderId == currentUserId;
+        const fileHtml = `
+            <div class="chat-message ${isMine ? "sent file-received" : "received file-received"}">
+                <div class="bubble">
+                    <div class="sender-name">
+                        <b>${user} :</b>
+                        <span>📎 <a href="${filePath}" target="_blank">${fileName}</a></span>
+                    </div>
+                    <span class="time">Just now</span>
+                </div>
+            </div>
+        `;
+        chatBody.innerHTML += fileHtml;
+        chatBody.scrollTop = chatBody.scrollHeight;
+    });
+
+    // -------- SIGNALR EVENTS --------
+    connection.onreconnecting(() => console.log("SignalR Reconnecting..."));
+    connection.onreconnected(() => {
+        console.log("SignalR Reconnected");
+        connection.invoke("JoinGroup", groupId.toString());
+    });
+    connection.onclose(() => console.log("SignalR Connection Closed"));
+
+    // -------- START CONNECTION --------
+    async function startConnection() {
+        try {
+            await connection.start();
+            console.log("SignalR Connected");
+            await connection.invoke("JoinGroup", groupId.toString());
+        } catch (err) {
+            console.error("SignalR Connection Error:", err);
+            setTimeout(startConnection, 5000);
+        }
+    }
+    startConnection();
+
+    // -------- AUTO SUBMIT FILE --------
+    function uploadFileAuto() {
+        const fileInput = document.getElementById("uploadedFile");
+        if (fileInput.files.length === 0) return;
+        fileInput.closest("form").submit();
+    }
 </script>

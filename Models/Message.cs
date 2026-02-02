@@ -10,7 +10,7 @@ namespace ClientServerCommunication.Models
 
         public int ReceiverId { get; set; }
 
-        public int? GroupId { get; set; }
+        public int GroupId { get; set; }
 
         public string Contents { get; set; } = string.Empty;
 

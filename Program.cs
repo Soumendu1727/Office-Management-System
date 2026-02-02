@@ -15,12 +15,14 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+builder.Services.AddSignalR();
+
 // ✅ Register AuthService AFTER builder creation
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<MessageService>();
 builder.Services.AddScoped<GroupService>();
-
+builder.Services.AddScoped<FileService>();
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(
         Path.Combine(builder.Environment.ContentRootPath, "DataProtectionKeys")))
@@ -47,5 +49,6 @@ app.UseSession();
 app.UseAuthorization();
 
 app.MapRazorPages();
+app.MapHub<ChatHub>("/chatHub");
 
 app.Run();

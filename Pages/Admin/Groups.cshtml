@@ -45,54 +45,55 @@
 
 @foreach (var group in Model.Groups)
 {
-    <form method="post" asp-page-handler="UpdateGroup" class="card p-3 mb-3">
-        <input type="hidden" name="EditGroup.Id" value="@group.Id" />
+    <div class="card p-3 mb-3">
 
-        <div class="mb-2">
-            <label>Group Name</label>
-            <input class="form-control"
-                   name="EditGroup.GroupName"
-                   value="@group.GroupName" />
-        </div>
+        <!-- UPDATE FORM -->
+        <form method="post" asp-page-handler="UpdateGroup">
+            <input type="hidden" name="EditGroup.Id" value="@group.Id" />
 
-        <div class="mb-2">
-            <label>Team Leaders</label>
-            <select class="form-select" multiple
-                    name="EditGroup.TeamLeaderIds">
-                @foreach (var tl in Model.TeamLeaders)
-                {
-                    <option value="@tl.Id"
-                            selected="@group.TeamLeaderIds.Contains(tl.Id)">
-                        @tl.Name
-                    </option>
-                }
-            </select>
-        </div>
+            <div class="mb-2">
+                <label>Group Name</label>
+                <input class="form-control"
+                       name="EditGroup.GroupName"
+                       value="@group.GroupName" />
+            </div>
 
-        <div class="mb-2">
-            <label>Members</label>
-            <select class="form-select" multiple
-                    name="EditGroup.MemberIds">
-                @foreach (var m in Model.Members)
-                {
-                    <option value="@m.Id"
-                            selected="@group.MemberIds.Contains(m.Id)">
-                        @m.Name
-                    </option>
-                }
-            </select>
-        </div>
+            <div class="mb-2">
+                <label>Team Leaders</label>
+                <select class="form-select" multiple name="EditGroup.TeamLeaderIds">
+                    @foreach (var tl in Model.TeamLeaders)
+                    {
+                        <option value="@tl.Id"
+                                selected="@group.TeamLeaderIds.Contains(tl.Id)">
+                            @tl.Name
+                        </option>
+                    }
+                </select>
+            </div>
 
-        <div class="d-flex gap-2">
+            <div class="mb-2">
+                <label>Members</label>
+                <select class="form-select" multiple name="EditGroup.MemberIds">
+                    @foreach (var m in Model.Members)
+                    {
+                        <option value="@m.Id"
+                                selected="@group.MemberIds.Contains(m.Id)">
+                            @m.Name
+                        </option>
+                    }
+                </select>
+            </div>
+
             <button class="create-update">Update</button>
+        </form>
 
-            <form method="post" asp-page-handler="DeleteGroup">
-                <input type="hidden" name="groupId" value="@group.Id" />
-                <button class="create-user"
-                        onclick="return confirm('Delete this group?')">
-                    Delete
-                </button>
-            </form>
-        </div>
-    </form>
+        <!-- DELETE FORM -->
+        <form method="post"
+              asp-page-handler="DeleteGroup"
+              onsubmit="return confirm('Delete this group?')">
+            <input type="hidden" name="groupId" value="@group.Id" />
+            <button class="create-user mt-2">Delete</button>
+        </form>
+
+    </div>
 }
