@@ -11,3 +11,7 @@ release/
 
 # Logs
 *.log
+App_Data/files.json
+Data/messages.json
+wwwroot/uploads/group-files
+

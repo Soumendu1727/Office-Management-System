@@ -17,4 +17,33 @@ public class ChatHub : Hub
     {
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupId);
     }
+
+    public async Task NotifyFileUploading(
+        string groupId,
+        string userName,
+        string fileName
+    )
+    {
+        await Clients.Group(groupId)
+            .SendAsync("FileUploading", userName, fileName);
+    }
+
+    public async Task NotifyFileUploaded(
+        string groupId,
+        string userName,
+        int fileId,
+        string fileName,
+        string filePath,
+        string time
+    )
+    {
+        await Clients.Group(groupId)
+            .SendAsync("FileUploaded",
+                userName,
+                fileId,
+                fileName,
+                filePath,
+                time
+            );
+    }
 }

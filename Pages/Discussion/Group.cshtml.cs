@@ -142,6 +142,12 @@ namespace New_Project.Pages.Discussion
                 {
                     if (file.Length == 0) continue;
 
+                    await _hubContext.Clients.Group(groupId.ToString())
+                        .SendAsync("FileUploading",
+                            userName,
+                            file.FileName
+                        );
+
                     var uniqueName = $"{Guid.NewGuid()}_{file.FileName}";
                     var path = Path.Combine(folder, uniqueName);
 
@@ -157,12 +163,13 @@ namespace New_Project.Pages.Discussion
                     });
 
                     await _hubContext.Clients.Group(groupId.ToString())
-                        .SendAsync("ReceiveFile",
+                        .SendAsync("FileUploaded",
                             userName,
-                            savedFile.FileName,
                             savedFile.Id,
-                            userId,
-                            savedFile.UploadedAt.ToString("dd/MM/yy , hh:mm tt"));
+                            savedFile.FileName,
+                            savedFile.FilePath,
+                            savedFile.UploadedAt.ToString("dd/MM/yy, hh:mm tt")
+                        );
                 }
 
                 

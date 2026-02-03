@@ -147,22 +147,30 @@
     });
 
     // -------- RECEIVE FILE MESSAGE --------
-    connection.on("ReceiveFile", function (user, fileName, fileId, senderId, time) {
-        const isMine = senderId == currentUserId;
-        const fileHtml = `
-            <div class="chat-message ${isMine ? "sent file-received" : "received file-received"}">
-                <div class="bubble">
-                    <div class="sender-name">
-                        <b>${user} :</b>
-                        <span>📎 <a href="${filePath}" target="_blank">${fileName}</a></span>
+
+    connection.on("FileUploaded",
+        function (user, fileId, fileName, filePath, time) {
+
+            const fileHtml = `
+                <div class="chat-message received file-received">
+                    <div class="bubble">
+                        <div class="sender-name">
+                            <b>${user} :</b>
+                            <span>
+                                📎 <a href="${filePath}" target="_blank">
+                                    ${fileName}
+                                </a>
+                            </span>
+                        </div>
+                        <span class="time">${time}</span>
                     </div>
-                    <span class="time">Just now</span>
                 </div>
-            </div>
-        `;
-        chatBody.innerHTML += fileHtml;
-        chatBody.scrollTop = chatBody.scrollHeight;
-    });
+            `;
+
+            chatBody.innerHTML += fileHtml;
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+    );
 
     // -------- SIGNALR EVENTS --------
     connection.onreconnecting(() => console.log("SignalR Reconnecting..."));
